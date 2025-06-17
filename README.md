@@ -74,3 +74,13 @@ curl --location 'http://localhost:8080/api/v1/webhook' \
 ```
 curl --location 'http://localhost:8080/metrics'
 ```
+
+## 🔐 Autenticación (JWT)
+
+Este servicio requiere autenticación mediante tokens JWT para acceder a sus endpoints seguros.
+
+Para generar un token JWT válido para pruebas, utiliza el proyecto dedicado:
+[**Generador de Token JWT**](https://github.com/javiacuna/jwt-token-generator)
+
+Una vez generado, incluir el token en las solicitudes HTTP usando el encabezado `Authorization` con el prefijo `Bearer`:
+`Authorization: Bearer <TOKEN_GENERADO>`
