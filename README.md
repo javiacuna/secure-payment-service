@@ -23,7 +23,7 @@ cd secure-payment-service
 
 2. Ejecutar el Servicio con Docker Compose
 ```
-docker-compose up --build
+docker compose up --build -d
 ```
 
 ## Endpoints de la API:
