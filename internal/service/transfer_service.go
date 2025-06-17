@@ -22,6 +22,8 @@ const (
 	GetTransfer       = "get_transfer"
 	GetAccountBalance = "get_account_balance"
 	UpdateTransfer    = "update_transfer"
+	maxAttempts       = 5
+	baseDelay         = 5
 )
 
 type TransferService interface {
@@ -117,9 +119,6 @@ func (s *TransferServiceImpl) UpdateTransfer(id, status string) error {
 }
 
 func (s *TransferServiceImpl) MonitorTransfer(id string) {
-	const maxAttempts = 5
-	const baseDelay = 5
-
 	for i := 0; i < maxAttempts; i++ {
 		transfer, err := s.GetTransfer(id)
 		if err == nil && transfer.Status == enums.PENDING.String() {
