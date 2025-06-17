@@ -17,7 +17,7 @@ Para desarrollo local, el servicio utiliza PostgreSQL. La configuración de la b
 
 1. Clonar el repositorio
 ```
-git clone git@github.com:tu_usuario/secure-payment-service.git
+git clone git@github.com:javiacuna/secure-payment-service.git
 cd secure-payment-service
 ```
 
