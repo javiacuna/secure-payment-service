@@ -60,6 +60,15 @@ func (r *GormRepository) GetAccountBalance(id string) (float64, error) {
 	var balanceIn sql.NullFloat64
 	var balanceOut sql.NullFloat64
 
+	var count int64
+	r.db.Model(&models.Transfer{}).
+		Where("from_account = ? OR to_account = ?", id, id).
+		Count(&count)
+
+	if count == 0 {
+		return 0, errors.New("account not found")
+	}
+
 	resultInErr := r.db.Model(&models.Transfer{}).
 		Select("sum(amount)").
 		Where("to_account = ? AND status = ?", id, enums.COMPLETED.String()).

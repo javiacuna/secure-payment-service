@@ -105,9 +105,10 @@ func TestGormRepository(t *testing.T) {
 			})
 		}
 
-		t.Run("empty_account_zero_balance", func(t *testing.T) {
+		t.Run("non_existent_account_returns_not_found_error", func(t *testing.T) {
 			balance, err := repo.GetAccountBalance("acc-empty-001")
-			assert.NoError(t, err)
+			assert.Error(t, err)
+			assert.Equal(t, "account not found", err.Error())
 			assert.Equal(t, 0.0, balance)
 		})
 
