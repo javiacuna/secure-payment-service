@@ -14,6 +14,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+const (
+	StatusSuccess     = "success"
+	StatusFailure     = "failure"
+	StatusNotFound    = "not_found"
+	CreateTransfer    = "create_transfer"
+	GetTransfer       = "get_transfer"
+	GetAccountBalance = "get_account_balance"
+	UpdateTransfer    = "update_transfer"
+)
+
 type TransferService interface {
 	CreateTransfer(req transfers.TransferRequest) (string, error)
 	GetTransfer(id string) (models.Transfer, error)
@@ -30,79 +40,79 @@ func NewTransferService(repo repository.TransferRepository) TransferService {
 }
 
 func (s *TransferServiceImpl) CreateTransfer(req transfers.TransferRequest) (string, error) {
-	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues("create_transfer", "success"))
+	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues(CreateTransfer, StatusSuccess))
 	defer timer.ObserveDuration()
 
 	id, err := s.repo.CreateTransfer(req.FromAccount, req.ToAccount, req.Amount)
 	if err != nil {
-		metrics.ServiceOperationsTotal.WithLabelValues("create_transfer", "failure").Inc()
+		metrics.ServiceOperationsTotal.WithLabelValues(CreateTransfer, StatusFailure).Inc()
 		timer.ObserveDuration()
-		metrics.ServiceOperationDurationSeconds.WithLabelValues("create_transfer", "failure").Observe(0)
+		metrics.ServiceOperationDurationSeconds.WithLabelValues(CreateTransfer, StatusFailure).Observe(0)
 		return "", err
 	}
 
-	metrics.ServiceOperationsTotal.WithLabelValues("create_transfer", "success").Inc()
+	metrics.ServiceOperationsTotal.WithLabelValues(CreateTransfer, StatusSuccess).Inc()
 	go s.MonitorTransfer(id)
 
 	return id, nil
 }
 
 func (s *TransferServiceImpl) GetTransfer(id string) (models.Transfer, error) {
-	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues("get_transfer", "success"))
+	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues(GetTransfer, StatusSuccess))
 	defer timer.ObserveDuration()
 
 	transfer, err := s.repo.GetTransfer(id)
 	if err != nil {
-		statusLabel := "failure"
+		statusLabel := StatusFailure
 		if errors.Is(err, errors.New("transfer not found")) {
-			statusLabel = "not_found"
+			statusLabel = StatusNotFound
 		}
-		metrics.ServiceOperationsTotal.WithLabelValues("get_transfer", statusLabel).Inc()
+		metrics.ServiceOperationsTotal.WithLabelValues(GetTransfer, statusLabel).Inc()
 		timer.ObserveDuration()
-		metrics.ServiceOperationDurationSeconds.WithLabelValues("get_transfer", statusLabel).Observe(0)
+		metrics.ServiceOperationDurationSeconds.WithLabelValues(GetTransfer, statusLabel).Observe(0)
 		return models.Transfer{}, err
 	}
 
-	metrics.ServiceOperationsTotal.WithLabelValues("get_transfer", "success").Inc()
+	metrics.ServiceOperationsTotal.WithLabelValues(GetTransfer, StatusSuccess).Inc()
 	return transfer, nil
 }
 
 func (s *TransferServiceImpl) GetAccountBalance(id string) (float64, error) {
-	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues("get_account_balance", "success"))
+	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues(GetAccountBalance, StatusSuccess))
 	defer timer.ObserveDuration()
 
 	balance, err := s.repo.GetAccountBalance(id)
 	if err != nil {
-		statusLabel := "failure"
+		statusLabel := StatusFailure
 		if errors.Is(err, errors.New("account not found")) {
-			statusLabel = "not_found"
+			statusLabel = StatusNotFound
 		}
-		metrics.ServiceOperationsTotal.WithLabelValues("get_account_balance", statusLabel).Inc()
+		metrics.ServiceOperationsTotal.WithLabelValues(GetAccountBalance, statusLabel).Inc()
 		timer.ObserveDuration()
-		metrics.ServiceOperationDurationSeconds.WithLabelValues("get_account_balance", statusLabel).Observe(0)
+		metrics.ServiceOperationDurationSeconds.WithLabelValues(GetAccountBalance, statusLabel).Observe(0)
 		return 0, err
 	}
 
-	metrics.ServiceOperationsTotal.WithLabelValues("get_account_balance", "success").Inc()
+	metrics.ServiceOperationsTotal.WithLabelValues(GetAccountBalance, StatusSuccess).Inc()
 	return balance, nil
 }
 
 func (s *TransferServiceImpl) UpdateTransfer(id, status string) error {
-	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues("update_transfer", "success"))
+	timer := prometheus.NewTimer(metrics.ServiceOperationDurationSeconds.WithLabelValues(UpdateTransfer, StatusSuccess))
 	defer timer.ObserveDuration()
 
 	if err := s.repo.UpdateTransfer(id, status); err != nil {
-		statusLabel := "failure"
+		statusLabel := StatusFailure
 		if errors.Is(err, errors.New("transfer not found")) {
-			statusLabel = "not_found"
+			statusLabel = StatusNotFound
 		}
-		metrics.ServiceOperationsTotal.WithLabelValues("update_transfer", statusLabel).Inc()
+		metrics.ServiceOperationsTotal.WithLabelValues(UpdateTransfer, statusLabel).Inc()
 		timer.ObserveDuration()
-		metrics.ServiceOperationDurationSeconds.WithLabelValues("update_transfer", statusLabel).Observe(0)
+		metrics.ServiceOperationDurationSeconds.WithLabelValues(UpdateTransfer, statusLabel).Observe(0)
 		return err
 	}
 
-	metrics.ServiceOperationsTotal.WithLabelValues("update_transfer", "success").Inc()
+	metrics.ServiceOperationsTotal.WithLabelValues(UpdateTransfer, StatusSuccess).Inc()
 	return nil
 }
 
@@ -120,7 +130,7 @@ func (s *TransferServiceImpl) MonitorTransfer(id string) {
 			metrics.TransferMonitorAttemptsTotal.WithLabelValues(id, fmt.Sprintf("%d", i+1), "error").Inc()
 			return
 		} else {
-			metrics.TransferMonitorAttemptsTotal.WithLabelValues(id, fmt.Sprintf("%d", i+1), "success").Inc()
+			metrics.TransferMonitorAttemptsTotal.WithLabelValues(id, fmt.Sprintf("%d", i+1), StatusSuccess).Inc()
 			return
 		}
 	}
